@@ -12,18 +12,22 @@ assert(getGc and getInfo and getConstants and isXClosure, "Your exploit is not s
 local placeholderUserdataConstant = newproxy(false)
 
 local function matchConstants(closure, list)
-    if not list then
-        return true
-    end
-    
+    if not list then return true end
     local constants = getConstants(closure)
-    
     for index, value in pairs(list) do
-        if constants[index] ~= value and value ~= placeholderUserdataConstant then
+        local const = constants[index]
+        if type(const) == "table" and type(value) == "table" then
+            -- Compare table contents
+            for k, v in pairs(value) do
+                if const[k] ~= v then return false end
+            end
+            for k in pairs(const) do
+                if value[k] == nil then return false end
+            end
+        elseif const ~= value then
             return false
         end
     end
-    
     return true
 end
 
